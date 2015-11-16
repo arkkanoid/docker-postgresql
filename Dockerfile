@@ -10,12 +10,7 @@ ENV PG_VERSION=9.4 \
 ENV PG_CONFDIR="/etc/postgresql/${PG_VERSION}/main" \
     PG_BINDIR="/usr/lib/postgresql/${PG_VERSION}/bin" \
     PG_DATADIR="${PG_HOME}/${PG_VERSION}/main"
-ENV host="apppostgresdb.c1ixnwz0kidt.eu-west-1.rds.amazonaws.com"
-ENV db="AppPostgresDB"
-ENV user="root"
-ENV password="password"
-# ENV DB_USER=dbuser
-# ENV DB_PASS=dbpass
+
 ENV DB_NAME="AppPostgresDB"
 
 RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
@@ -31,8 +26,6 @@ COPY entrypoint.sh /sbin/entrypoint.sh
 RUN chmod 755 /sbin/entrypoint.sh
 # COPY dump.sh /sbin/dump.sh
 # RUN chmod 755 /sbin/dump.sh
-
-
 
 EXPOSE 5432/tcp
 CMD ["/sbin/entrypoint.sh"]
