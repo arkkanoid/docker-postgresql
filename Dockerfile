@@ -10,6 +10,13 @@ ENV PG_VERSION=9.4 \
 ENV PG_CONFDIR="/etc/postgresql/${PG_VERSION}/main" \
     PG_BINDIR="/usr/lib/postgresql/${PG_VERSION}/bin" \
     PG_DATADIR="${PG_HOME}/${PG_VERSION}/main"
+ENV host="apppostgresdb.c1ixnwz0kidt.eu-west-1.rds.amazonaws.com"
+ENV db="AppPostgresDB"
+ENV user="root"
+ENV password="password"
+# ENV DB_USER=dbuser
+# ENV DB_PASS=dbpass
+ENV DB_NAME="AppPostgresDB"
 
 RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
  && echo 'deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main' > /etc/apt/sources.list.d/pgdg.list \
@@ -18,9 +25,15 @@ RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-k
  && rm -rf ${PG_HOME} \
  && rm -rf /var/lib/apt/lists/*
 
+RUN mkdir /db-backup
+
 COPY entrypoint.sh /sbin/entrypoint.sh
 RUN chmod 755 /sbin/entrypoint.sh
+# COPY dump.sh /sbin/dump.sh
+# RUN chmod 755 /sbin/dump.sh
+
+
 
 EXPOSE 5432/tcp
-VOLUME ["${PG_HOME}", "${PG_RUNDIR}"]
 CMD ["/sbin/entrypoint.sh"]
+# CMD ["/sbin/dump.sh"]

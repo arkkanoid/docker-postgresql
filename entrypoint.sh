@@ -239,6 +239,59 @@ if [[ ${PSQL_MODE} == standalone || ${PSQL_MODE} == master ]]; then
   fi
 fi
 
+# This script starts the database server.
+dbfile="/db-backup/backup.sql"
+
+echo "Adding data into PostgreSQL"
+
+
+export PGPASSWORD=$password
+ pg_dump -h $host -U $user -d $db > $dbfile
+
+echo "CREATE USER $user WITH PASSWORD '$password';" | \
+  sudo -Hu ${PG_USER} ${PG_BINDIR}/postgres --single ${db} \
+    -D ${PG_DATADIR} -c config_file=${PG_CONFDIR}/postgresql.conf >/dev/null
+
+echo "GRANT CONNECT ON DATABASE  \"${db}\" TO $user;" | \
+  sudo -Hu ${PG_USER} ${PG_BINDIR}/postgres --single ${db} \
+    -D ${PG_DATADIR} -c config_file=${PG_CONFDIR}/postgresql.conf >/dev/null
+
+echo "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO root;" | \
+  sudo -Hu ${PG_USER} ${PG_BINDIR}/postgres --single ${db} \
+    -D ${PG_DATADIR} -c config_file=${PG_CONFDIR}/postgresql.conf >/dev/null
+
+echo "GRANT USAGE ON SCHEMA public to root" | \
+  sudo -Hu ${PG_USER} ${PG_BINDIR}/postgres --single ${db} \
+    -D ${PG_DATADIR} -c config_file=${PG_CONFDIR}/postgresql.conf >/dev/null
+
+echo "GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO root;" | \
+  sudo -Hu ${PG_USER} ${PG_BINDIR}/postgres --single ${db} \
+    -D ${PG_DATADIR} -c config_file=${PG_CONFDIR}/postgresql.conf >/dev/null
+
+echo "GRANT SELECT ON ALL TABLES IN SCHEMA public TO root;" | \
+  sudo -Hu ${PG_USER} ${PG_BINDIR}/postgres --single ${db} \
+    -D ${PG_DATADIR} -c config_file=${PG_CONFDIR}/postgresql.conf >/dev/null    
+
+
+echo "sudo -Hu ${PG_USER} ${PG_BINDIR}/postgres --single ${db} \
+    -D ${PG_DATADIR} -c config_file=${PG_CONFDIR}/postgresql.conf >/dev/null"
+# psql -h localhost -U root -d $db < $dbfile
+# psql -h localhost -U root -d $db -c "CREATE USER $user WITH PASSWORD '$password';"
+# psql -h localhost -U root -d $db -c "GRANT CONNECT ON DATABASE $db TO $user"
+# psql -h localhost -U $user -d $db -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO root;"
+# psql -h localhost -U $user -d $db -c "GRANT USAGE ON SCHEMA public to root;"
+# psql -h localhost -U $user -d $db -c "GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO root; "
+# psql -h localhost -U $user -d $db -c "GRANT SELECT ON ALL TABLES IN SCHEMA public TO root;"
+
+
+# rm $dbfile
+
+
+
 echo "Starting PostgreSQL server..."
 exec start-stop-daemon --start --chuid ${PG_USER}:${PG_USER} --exec ${PG_BINDIR}/postgres -- \
   -D ${PG_DATADIR} -c config_file=${PG_CONFDIR}/postgresql.conf
+
+
+
+
